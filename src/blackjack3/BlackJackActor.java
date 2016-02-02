@@ -11,6 +11,10 @@ class BlackJackActor{
 	public enum ActorType{
 		YOU, DEALER
 	}
+    
+    public boolean isType(ActorType type){
+    	return this.type.equals(type);
+    }
 
 	public List<Integer> getCards(){
 		return cards;
@@ -23,27 +27,19 @@ class BlackJackActor{
     public BlackJackActor(ActorType type, String name){
     	this.name = name;
     	this.type = type;
-    	//それぞれのプレイヤーはゲーム開始時に２枚のカードを引く
-        hits();
-        hits();
     }
 
-    public ActorType getActorType(){
-    	return type;
-    }
-
-    public static String toNominal(Integer cardNum){
-        String card = cardNum.toString();
-        if(card.equals("1")){
-            card = "A";
-        }else if(card.equals("11")){
-            card = "J";
-        }else if(card.equals("12")){
-            card = "Q";
-        }else if(card.equals("13")){
-            card = "K";
+    public static String toNominal(int cardNum){
+        if(cardNum == 1){
+            return "A";
+        }else if(cardNum == 11){
+            return "J";
+        }else if(cardNum == 12){
+            return "Q";
+        }else if(cardNum == 13){
+            return "K";
         }
-        return card;
+        return String.valueOf(cardNum);
     }
 
     public void hits(){
@@ -55,14 +51,14 @@ class BlackJackActor{
         int ace = 0;
         for(int n : cards){
             if(n==1){
-                ace++;
+            	ace += 1;
             }else if(n>10){
-                sum+=10;
+                sum += 10;
             }else{
-                sum+=n;
+                sum += n;
             }
         }
-
+        
         while(ace>0){
             if(sum + 11 * ace > 21){
             	sum += 1;

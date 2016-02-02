@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
+import blackjack3.BlackJackActor.ActorType;
 import blackjack3.BlackJackModel.GameState;
+import blackjack3.BlackJackModel.UserInput;
 
 public class BlackJackVC implements Observer{
 
@@ -13,7 +15,7 @@ public class BlackJackVC implements Observer{
 
 	public BlackJackVC(BlackJackModel model){
 		this.model = model;
-		model.observers.add(this);
+		model.addObserver(this);
 	}
 
 	@Override
@@ -31,21 +33,14 @@ public class BlackJackVC implements Observer{
         case PLAYERTURN:
             if(player.getTotal()<21){
                 System.out.print("h:ヒット  s:スタンド  >> ");
-                BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-                String inputStr = "";
-				try {
-					inputStr = br.readLine();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				if(!inputStr.equals("h") && !inputStr.equals("s")){
-                    message = "もういちど入力してください";
+                String inputStr = input();
+                if(inputStr.equals("h")){
+                	model.setUserInput(UserInput.HIT);
+                }else if(inputStr.equals("s")){
+                	model.setUserInput(UserInput.STAND);
                 }else{
-
-                	if(inputStr.equals("h")){
-                    }else if(inputStr.equals("s")){
-                    	model.setGameState(GameState.DEALERTURN);
-                    }
+                    message = "もういちど入力してください";
+                    model.setUserInput(UserInput.NONE);
                 }
             }else if(player.getTotal()==21 && dealer.getTotal()==21){
                 message = ("ブラックジャック\n引き分け");
@@ -67,33 +62,49 @@ public class BlackJackVC implements Observer{
             	message = ("あなたの負けです！");
             }
         	break;
+        	
         }
 
         System.out.println(message);
 
 	}
+	
+	public String input(){
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String inputStr = "";
+		try {
+			inputStr = br.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return inputStr;
+	}
 
     public void show(BlackJackActor actor){
         List<Integer> cards = actor.getCards();
         System.out.print(actor.getName() + ": ");
-        for(int i=0; i<cards.size(); i++){
-        	if(i > 0){
-        		System.out.print(" ");
-        	}
-            String card = BlackJackActor.toNominal(cards.get(i));
-            if(i==cards.size()-1 && model.getGameState()==GameState.PLAYERTURN
-            		&& actor.getActorType().equals(BlackJackActor.ActorType.DEALER)){
-                System.out.print("*");
+        
+        System.out.print(BlackJackActor.toNominal(cards.get(0)));
+        for(int i=1; i<cards.size(); ++i){
+            if(canShow(actor)){
+                String card = BlackJackActor.toNominal(cards.get(i));
+                System.out.print(" " + card);
             }else{
-                System.out.print(card);
+                System.out.print(" *");
             }
         }
-        if(model.getGameState()==GameState.PLAYERTURN
-        		&& actor.getActorType().equals(BlackJackActor.ActorType.DEALER)){
-            System.out.println();
-        }else{
+
+        if(canShow(actor)){
             System.out.println(" ["+actor.getTotal()+"]");
+        }else{
+            System.out.println();
         }
+        
+    }
+    
+    public boolean canShow(BlackJackActor actor){
+    	return !(model.getGameState().equals(GameState.PLAYERTURN)
+        		&& actor.isType(ActorType.DEALER));
     }
 
 }
